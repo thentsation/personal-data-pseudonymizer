@@ -1,0 +1,6 @@
+services:
+  pseudonymizer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: personal-data-pseudonymizer
