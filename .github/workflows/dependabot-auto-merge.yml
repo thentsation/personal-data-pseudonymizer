@@ -1,0 +1,38 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Enable auto-merge (patch/minor only)
+        if: contains(fromJSON('["version-update:semver-patch", "version-update:semver-minor"]'), steps.metadata.outputs.update-type)
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Label major version bumps for manual review
+        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+        run: |
+          gh label create "dependabot-major" --repo "${{ github.repository }}" --color FBCA04 --description "Dependabot major-version bump awaiting manual review" --force
+          gh pr edit "$PR_URL" --add-label "dependabot-major"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

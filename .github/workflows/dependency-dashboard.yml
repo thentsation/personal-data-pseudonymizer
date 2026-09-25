@@ -1,0 +1,75 @@
+name: Dependency Dashboard
+
+on:
+  schedule:
+    - cron: "0 12 * * 1" # segundas 09:00 BRT (UTC-3)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  security-events: read
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build dashboard body
+        env:
+          GH_TOKEN: ${{ secrets.DASHBOARD_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          HAS_PENDING=false
+
+          MAJOR_PRS=$(gh pr list --repo "${{ github.repository }}" --label dependabot-major --state open --json number,title,url --jq '.[] | "- [#\(.number)](\(.url)) \(.title)"')
+          if [ -n "$MAJOR_PRS" ]; then HAS_PENDING=true; fi
+
+          set +e
+          ALERTS=$(gh api "repos/${{ github.repository }}/dependabot/alerts?state=open" --jq '.[] | "- **\(.security_advisory.severity | ascii_upcase)** \(.security_advisory.summary) — [\(.dependency.package.name)](\(.html_url))"' 2>/tmp/alerts_err)
+          ALERTS_STATUS=$?
+          set -e
+
+          {
+            echo "_Atualizado automaticamente em $(date -u +'%Y-%m-%d %H:%M UTC')._"
+            echo ""
+            echo "## 🔺 PRs do Dependabot aguardando revisão (major version)"
+            if [ -z "$MAJOR_PRS" ]; then
+              echo "_Nenhum PR major pendente._"
+            else
+              echo "$MAJOR_PRS"
+            fi
+            echo ""
+            echo "## 🛡️ Alertas de segurança abertos (Dependabot)"
+            if [ $ALERTS_STATUS -ne 0 ]; then
+              echo "::warning::Não foi possível ler os alertas do Dependabot. Configure o secret DASHBOARD_PAT (PAT com permissão 'Dependabot alerts: read'). Detalhe: $(cat /tmp/alerts_err)" >&2
+              echo "_Sem acesso aos alertas de segurança — configure o secret \`DASHBOARD_PAT\` (token com permissão \"Dependabot alerts: read\") para habilitar esta seção._"
+              HAS_PENDING=true
+            elif [ -z "$ALERTS" ]; then
+              echo "_Nenhum alerta aberto._"
+            else
+              echo "$ALERTS"
+              HAS_PENDING=true
+            fi
+          } > /tmp/dashboard-body.md
+
+          echo "HAS_PENDING=$HAS_PENDING" >> "$GITHUB_ENV"
+
+      - name: Create, update, or close dashboard issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="Dependency & Security Dashboard"
+          NUM=$(gh issue list --repo "${{ github.repository }}" --state all --search "$TITLE in:title" --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n1)
+
+          if [ "$HAS_PENDING" = "true" ]; then
+            if [ -n "$NUM" ]; then
+              gh issue edit "$NUM" --repo "${{ github.repository }}" --body-file /tmp/dashboard-body.md
+              gh issue reopen "$NUM" --repo "${{ github.repository }}" 2>/dev/null || true
+            else
+              gh issue create --repo "${{ github.repository }}" --title "$TITLE" --body-file /tmp/dashboard-body.md
+            fi
+          elif [ -n "$NUM" ]; then
+            gh issue edit "$NUM" --repo "${{ github.repository }}" --body-file /tmp/dashboard-body.md
+            gh issue close "$NUM" --repo "${{ github.repository }}" --comment "Nada pendente no momento — fechada automaticamente. Reabre sozinha se algo aparecer." 2>/dev/null || true
+          fi
