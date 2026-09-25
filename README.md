@@ -1,52 +1,22 @@
 # Personal Data Pseudonymizer
 
-This is a small Python script that uses the spaCy library to identify named entities in an English text and then replaces these entities with pseudonyms (asterisks). The goal is to protect the privacy of personal information in the text, such as names, locations, phone numbers, and email addresses.
+[![Python CI](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_python.yaml/badge.svg)](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_python.yaml)
+[![Docker CI/CD](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_docker.yaml/badge.svg)](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_docker.yaml)
+
+> Leia em [português](README.pt-br.md).
+
+A small Python CLI that uses spaCy to find named entities in English text and replaces them with pseudonyms (asterisks), together with phone numbers and email addresses. The goal is to protect personally identifiable information (PII) before text is shared, logged, or analyzed.
+
+An in-depth write-up of the design and productization of this project is available in [ARTIGO.md](ARTIGO.md) (pt-br) / [ARTIGO.en-us.md](ARTIGO.en-us.md) (en-us).
 
 ## Features
 
-- Identification of named entities such as **people (PERSON)** and **locations (GPE)** in the text.
-- Pseudonymization of people's names and locations by replacing them with asterisks (`*`).
-- Removal of phone numbers and email addresses by replacing them with asterisks (`*`).
-  
-The pseudonymization process helps in ensuring privacy, making it useful for scenarios like data analysis, content sharing, or protecting personally identifiable information (PII).
+- Detects **people (PERSON)** and **locations (GPE)** with spaCy's named entity recognition.
+- Detects phone numbers and email addresses with regular expressions.
+- Replaces every match with asterisks of the same length, preserving the original text layout.
+- Ships as a small CLI (`src/main.py`) and as a reusable library (`PseudonymizerService`).
 
-## Requirements
-
-Before running the script, ensure you have the following installed:
-
-- **Python 3.x**
-- **spaCy** library
-- **spaCy English model (`en_core_web_sm`)**
-
-### Installation
-
-1. Install the `spaCy` library by running:
-
-    ```bash
-    pip install spacy
-    ```
-
-2. Download the English model for `spaCy` by running:
-
-    ```bash
-    python -m spacy download en_core_web_sm
-    ```
-
-3. Clone or download this repository, and place the script `pseudonymization.py` in your desired folder.
-
-### Running the Script
-
-1. Open a terminal or command prompt.
-2. Navigate to the folder where the `pseudonymization.py` file is located.
-3. Run the script with:
-
-    ```bash
-    python pseudonymization.py
-    ```
-
-The script will process the sample text and print the original and pseudonymized texts in the terminal.
-
-### Sample Output
+### Sample output
 
 ```text
 Original text:
@@ -56,18 +26,53 @@ Pseudonymized text:
 The applicant **** ** ***, living at ***** Street, has the phone number ************, and his email is ********@*****.***. He also visited ***** York.
 ```
 
-## How it Works
+## Getting started
 
-1. **Entity Extraction**: The script uses spaCy to extract named entities, such as people's names (`PERSON`) and geographical locations (`GPE`).
-2. **Pseudonymization**: It replaces these identified entities with asterisks. The same approach is used for phone numbers and email addresses, which are also detected using regular expressions.
-3. **Logging**: The script logs the pseudonymization process, providing details about which entities were replaced.
+```bash
+make install       # creates .venv, installs deps and the spaCy model
+make run           # runs the CLI against the built-in sample text
+echo "John Doe lives in Paris" | make run  # or: .venv/bin/python src/main.py
+```
 
-## Use Cases
+Run with Docker instead:
 
-- **Data Privacy**: This script helps ensure that personally identifiable information (PII) is masked or pseudonymized before sharing or analyzing text data.
-- **GDPR & Data Protection**: Useful for ensuring compliance with data protection regulations like GDPR (General Data Protection Regulation) or LGPD (Lei Geral de Proteção de Dados).
-- **Text Anonymization**: Ideal for anonymizing content that contains sensitive personal information, such as survey responses, customer feedback, or legal documents.
+```bash
+make docker-build
+make docker-run
+```
+
+## Development
+
+```bash
+make test        # pytest
+make coverage     # pytest with coverage report
+make lint         # ruff check
+make format       # ruff format
+make typecheck    # mypy
+```
+
+CI runs ruff, pytest (coverage gate), mypy and pip-audit on every push/PR, plus a scheduled daily run. Docker images are built, scanned with Trivy, and published to GHCR on `main`. Dependabot keeps pip, Docker base image, and GitHub Actions versions up to date, with patch/minor bumps auto-merged. Releases are tagged automatically with [python-semantic-release](https://python-semantic-release.readthedocs.io/) based on Conventional Commits.
+
+## Project layout
+
+```text
+src/
+  main.py                  # CLI entry point
+  pseudonymizer_service.py # public facade
+  text_processor.py        # orchestrates detectors and replacement
+  detectors/
+    entity_detector.py     # spaCy NER (PERSON, GPE)
+    phone_detector.py       # regex phone numbers
+    email_detector.py       # regex emails
+tests/                      # unit tests (pytest, ~90%+ coverage)
+```
+
+## Use cases
+
+- **Data privacy**: mask PII in text before sharing, logging, or analyzing it.
+- **GDPR & LGPD**: helps support compliance with data protection regulations.
+- **Text anonymization**: anonymize survey responses, customer feedback, or legal documents.
 
 ## References
 
-[Medium - Demystifying Individual Privacy](https://medium.com/@nick.ruberg/demystifying-individual-privacy-anonymization-and-pseudonymization-in-the-age-of-data-protection-0bf7055fc0fd)
+- [Medium – Demystifying Individual Privacy](https://medium.com/@nick.ruberg/demystifying-individual-privacy-anonymization-and-pseudonymization-in-the-age-of-data-protection-0bf7055fc0fd)
