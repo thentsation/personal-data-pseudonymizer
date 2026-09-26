@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.2 (2026-09-26)
+
+### Bug Fixes
+
+- Broaden Trivy's pip/_vendor skip-dirs to a recursive glob
+  ([`f5b96a2`](https://github.com/thentsation/personal-data-pseudonymizer/commit/f5b96a2f4bb06780231ce6245a2109a56d97fbe4))
+
+
 ## v1.0.1 (2026-09-25)
 
 ### Bug Fixes
