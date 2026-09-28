@@ -35,6 +35,7 @@ jobs:
       - name: Create pull request
         uses: peter-evans/create-pull-request@v8.1.1
         with:
+          token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
           branch: deps/lockfile-update
           delete-branch: true
           title: 'chore(deps): update lockfile'
