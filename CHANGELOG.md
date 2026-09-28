@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.4 (2026-09-28)
+
+### Bug Fixes
+
+- **ci**: Open lockfile PRs with RELEASE_PAT so CI runs on them
+  ([`3e3a8cd`](https://github.com/thentsation/personal-data-pseudonymizer/commit/3e3a8cd6f7b6b29ff00de46ad4c13eb51e045698))
+
+
 ## v1.0.3 (2026-09-28)
 
 ### Bug Fixes
