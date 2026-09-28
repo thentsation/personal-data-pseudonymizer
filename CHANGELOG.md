@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.0.3 (2026-09-28)
+
+### Bug Fixes
+
+- Use RELEASE_PAT so dependabot auto-merge can write to PRs
+  ([`885b23c`](https://github.com/thentsation/personal-data-pseudonymizer/commit/885b23c349ff06f168fb8a508eb6b9b3c4870311))
+
+### Chores
+
+- **deps**: Bump ruff from 0.16.8 to 0.16.9 in /config
+  ([#4](https://github.com/thentsation/personal-data-pseudonymizer/pull/4),
+  [`a6abedf`](https://github.com/thentsation/personal-data-pseudonymizer/commit/a6abedf7b91d019b1ce7e2ddb71998e8f1781f96))
+
+
 ## v1.0.2 (2026-09-26)
 
 ### Bug Fixes
