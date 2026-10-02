@@ -1,8 +1,5 @@
 # Personal Data Pseudonymizer
 
-[![Python CI](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_python.yaml/badge.svg)](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_python.yaml)
-[![Docker CI/CD](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_docker.yaml/badge.svg)](https://github.com/thentsation/personal-data-pseudonymizer/actions/workflows/pipeline_docker.yaml)
-
 > Leia em [português](README.pt-br.md).
 
 A small Python CLI that uses spaCy to find named entities in English text and replaces them with pseudonyms (asterisks), together with phone numbers and email addresses. The goal is to protect personally identifiable information (PII) before text is shared, logged, or analyzed.
@@ -51,7 +48,11 @@ make format       # ruff format
 make typecheck    # mypy
 ```
 
-CI runs ruff, pytest (coverage gate), mypy and pip-audit on every push/PR, plus a scheduled daily run. Docker images are built, scanned with Trivy, and published to GHCR on `main`. Dependabot keeps pip, Docker base image, and GitHub Actions versions up to date, with patch/minor bumps auto-merged. Releases are tagged automatically with [python-semantic-release](https://python-semantic-release.readthedocs.io/) based on Conventional Commits.
+CI and deploy run on the platform's Jenkins (`Jenkinsfile` → `appPipeline` from the `platform` Shared Library, repo devops-platform), triggered by webhooks; there are no GitHub Actions.
+
+- **PRs and branches** — contract validation; `docker build --target test` (`ruff check`, `ruff format --check`, `mypy`, `pytest` with ≥90% coverage on Python 3.11 and 3.12, tool versions from `config/requirements-dev.txt`); `pip-audit` on `config/requirements.lock`; Trivy (CRITICAL/HIGH) on the runtime image.
+- **main** — all of the above, then build and a test run of the image (the job must exit 0; nothing stays running), release with python-semantic-release (version, CHANGELOG, tag and GitHub release) and a rebuild of the portfolio. Also rebuilt every Monday to pick up security patches.
+- **Dependencies** — Renovate (Jenkins job `platform/renovate`, `renovate.json` → devops-platform preset): daily updates, weekly lockfile maintenance, Dependency Dashboard issue and auto-merge of patch/minor after Jenkins passes.
 
 ## Project layout
 
