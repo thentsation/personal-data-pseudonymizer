@@ -21,7 +21,7 @@ jobs:
         uses: astral-sh/setup-uv@v10.3.2
 
       - name: Regenerate lockfile
-        run: uv pip compile config/requirements.txt -o config/requirements.lock --universal
+        run: uv pip compile --upgrade config/requirements.txt -o config/requirements.lock --universal
 
       - name: Audit updated lockfile
         id: audit
