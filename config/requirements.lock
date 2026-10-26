@@ -21,7 +21,9 @@ certifi==2026.10.23
 charset-normalizer==3.5.2
     # via requests
 click==8.5.0
-    # via spacy
+    # via
+    #   spacy
+    #   weasel
 cloudpathlib==0.26.0
     # via weasel
 colorama==0.4.6 ; sys_platform == 'win32'
@@ -29,7 +31,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
     #   tqdm
     #   typer
     #   wasabi
-confection==1.3.3
+confection==1.3.4
     # via
     #   spacy
     #   thinc
@@ -87,7 +89,9 @@ pydantic-core==2.50.1
 pygments==2.21.0
     # via rich
 requests==2.34.2
-    # via spacy
+    # via
+    #   smart-open
+    #   spacy
 rich==15.0.0
     # via typer
 setuptools==84.2.1
@@ -132,7 +136,7 @@ wasabi==1.1.3
     #   spacy
     #   thinc
     #   weasel
-weasel==1.0.0
+weasel==1.0.1
     # via spacy
 wrapt==2.5.1
     # via smart-open
